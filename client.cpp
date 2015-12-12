@@ -67,17 +67,16 @@ int main(int argc, char* argv[])
       {
         if (dynamic_cast<fs::fsMsgTrackingState*>(msg.get()))
         {
+
           fs::fsMsgTrackingState *ts = dynamic_cast<fs::fsMsgTrackingState*>(msg.get());
-          fs::fsMsgBlendshapeNames *bn = dynamic_cast<fs::fsMsgBlendshapeNames*>(msg.get());
           const fs::fsTrackingData & data = ts->tracking_data();
-          std::vector<std::string> blend = bn->blendshape_names(); 
 
-          for(std::vector<std::string>::iterator i= blend.begin(); i!= blend.end(); ++i)
-          {
-            printf("%s\n", (*i).c_str());
-          }
+          // for (std::vector<std::string>::iterator i = blend.begin(); i != blend.end(); ++i)
+          // {
+          //   printf("%s\n", (*i).c_str());
+          // }
 
-          //Now this is enough for testing but the name of the blendshapes must be found in the system. 
+          //Now this is enough for testing but the name of the blendshapes must be found in the system.
           // std::vector<std::string> blender_shapes = bn->blendshape_names();
 
 
@@ -87,14 +86,31 @@ int main(int argc, char* argv[])
           printf ("Eye Gaze Left Pitch: %f\n", data.m_eyeGazeLeftYaw);
           printf ("Eye Gaze Left Pitch: %f\n", data.m_eyeGazeRightPitch);
           printf ("Eye Gaze Left Pitch: %f\n", data.m_eyeGazeRightYaw);
-
-          std::vector<float> blend_shape = data.m_coeffs;
           int counter = 0;
+          std::vector<float> blend_shape = data.m_coeffs;
           for (std::vector<float>::iterator i = blend_shape.begin(); i != blend_shape.end(); ++i)
           {
             printf("Blendshape %d %f\n", counter, *i);
             counter++;
           }
+        }
+        if (dynamic_cast<fs::fsMsgBlendshapeNames*>(msg.get()))
+        {
+          fs::fsMsgBlendshapeNames *bn = dynamic_cast<fs::fsMsgBlendshapeNames*>(msg.get());
+
+          std::vector<std::string> blend = bn->blendshape_names();
+          int counter = 0;
+          for (std::vector<std::string>::iterator i = blend.begin(); i != blend.end(); ++i)
+          {
+            printf("Blendshape %d %s\n", counter, (*i).c_str());
+            counter++;
+          }
+
+
+        }
+        else{
+          //Not getting data
+          printf("Blendshapes not found\n" );
         }
       }
       if (!parserIn.valid()) {
