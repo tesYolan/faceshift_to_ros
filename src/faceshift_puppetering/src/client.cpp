@@ -2,19 +2,23 @@
 #include <boost/array.hpp>
 #include <boost/asio.hpp>
 #include <signal.h>
+#include <ros/ros.h>
+
+
 #include "fsbinarystream.h"
 using boost::asio::ip::tcp;
 
 int main(int argc, char* argv[])
 {
+  ros::init(argc, argv, "faceshift_to_ros");
   try
   {
     // the user should specify the server - the 2nd argument
-    if (argc != 3)
-    {
-      std::cerr << "Usage: client <host> <port>" << std::endl;
-      return 1;
-    }
+    // if (argc != 3)
+    // {
+    //   std::cerr << "Usage: client <host> <port>" << std::endl;
+    //   return 1;
+    // }
     fs::fsBinaryStream parserIn, parserOut;
     fs::fsMsgPtr msg;
 
@@ -28,7 +32,7 @@ int main(int argc, char* argv[])
     // A resolver takes a query object and turns it into a list of endpoints.
     // We construct a query using the name of the server, specified in argv[1],
     // and the name of the service, in this case "daytime".
-    tcp::resolver::query query(argv[1], argv[2]);
+    tcp::resolver::query query("localhost", "33433");
 
     // The list of endpoints is returned using an iterator of type ip::tcp::resolver::iterator.
     // A default constructed ip::tcp::resolver::iterator object can be used as an end iterator.

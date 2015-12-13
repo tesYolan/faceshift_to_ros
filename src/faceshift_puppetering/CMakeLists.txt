@@ -6,10 +6,11 @@ project(faceshift_puppetering)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  message_generation
 )
 
 ## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
+find_package(Boost REQUIRED COMPONENTS system thread filesystem)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -44,8 +45,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate messages in the 'msg' folder
 # add_message_files(
 #   FILES
-#   Message1.msg
-#   Message2.msg
+#   Blendshapes.msg
 # )
 
 ## Generate services in the 'srv' folder
@@ -63,7 +63,7 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
+ # generate_messages(
 #   DEPENDENCIES
 #   std_msgs  # Or other packages containing msgs
 # )
@@ -103,7 +103,8 @@ catkin_package(
 #  CATKIN_DEPENDS roscpp
 #  DEPENDS system_lib
 )
-
+set(faceshift_SRCS src/fsbinarystream.cpp)
+set(faceshift_HDRS include/fsbinarystream.h)
 ###########
 ## Build ##
 ###########
@@ -112,7 +113,7 @@ catkin_package(
 ## Your package locations should be listed before other locations
 # include_directories(include)
 include_directories(
-  ${catkin_INCLUDE_DIRS}
+  ${catkin_INCLUDE_DIRS} include
 )
 
 ## Declare a C++ library
@@ -126,16 +127,17 @@ include_directories(
 # add_dependencies(faceshift_puppetering ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-# add_executable(faceshift_puppetering_node src/faceshift_puppetering_node.cpp)
+add_library(faceshift_lib ${faceshift_SRCS} ${faceshift_HDRS})
+add_executable(faceshift_puppetering_node src/client.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 # add_dependencies(faceshift_puppetering_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(faceshift_puppetering_node
-#   ${catkin_LIBRARIES}
-# )
+ target_link_libraries(faceshift_puppetering_node
+   ${catkin_LIBRARIES} faceshift_lib ${Boost_LIBRARIES}
+ )
 
 #############
 ## Install ##
