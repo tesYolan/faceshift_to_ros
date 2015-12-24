@@ -4,57 +4,48 @@
 #include <signal.h>
 #include <ros/ros.h>
 
+#include <blender_api_msgs/FSShapekey.h>
+#include <blender_api_msgs/FSShapekeys.h>
+#include <blender_api_msgs/AnimationMode.h>
 
 #include "fsbinarystream.h"
 using boost::asio::ip::tcp;
 
 int main(int argc, char* argv[])
 {
+  std::string ip_num; 
+  std::string port_num; 
   ros::init(argc, argv, "faceshift_to_ros");
+  ros::NodeHandle nh;
+
+  ros::Publisher pub = nh.advertise<blender_api_msgs::AnimationMode>("/blender_api/set_animation_mode", 30, true);
+  ros::Publisher pub_shape = nh.advertise<blender_api_msgs::FSShapekeys>("/blender_api/set_shape_keys", 30);
   try
   {
-    // the user should specify the server - the 2nd argument
-    // if (argc != 3)
-    // {
-    //   std::cerr << "Usage: client <host> <port>" << std::endl;
-    //   return 1;
-    // }
+    blender_api_msgs::FSShapekeys shapekey_pairs;
+
+
     fs::fsBinaryStream parserIn, parserOut;
     fs::fsMsgPtr msg;
-
-    // Any program that uses asio need to have at least one io_service object
     boost::asio::io_service io_service;
-
-    // Convert the server name that was specified as a parameter to the application, to a TCP endpoint.
-    // To do this, we use an ip::tcp::resolver object.
     tcp::resolver resolver(io_service);
-
-    // A resolver takes a query object and turns it into a list of endpoints.
-    // We construct a query using the name of the server, specified in argv[1],
-    // and the name of the service, in this case "daytime".
-    tcp::resolver::query query("localhost", "33433");
-
-    // The list of endpoints is returned using an iterator of type ip::tcp::resolver::iterator.
-    // A default constructed ip::tcp::resolver::iterator object can be used as an end iterator.
+    nh.getParam("IP",ip_num);
+    tcp::resolver::query query(ip_num, "33433");
     tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
-
-    // Now we create and connect the socket.
-    // The list of endpoints obtained above may contain both IPv4 and IPv6 endpoints,
-    // so we need to try each of them until we find one that works.
-    // This keeps the client program independent of a specific IP version.
-    // The boost::asio::connect() function does this for us automatically.
     tcp::socket socket(io_service);
     boost::asio::connect(socket, endpoint_iterator);
     bool firstrun = true;
     size_t len;
     std::vector<std::string> blendshape_names;
-    // The connection is open. All we need to do now is read the response from the daytime service.
+
+    blender_api_msgs::AnimationMode mode;
+    mode.value = 1;
+    pub.publish(mode);
+
     for (;;)
     {
-      // We use a boost::array to hold the received data.
       boost::array<char, 128> buf;
       boost::system::error_code error;
-
       //Now this is an overkill but we need to get the blendshape names in every packet
       if (firstrun)
       {
@@ -64,16 +55,20 @@ int main(int argc, char* argv[])
         socket.send(boost::asio::buffer(datatosend));
         firstrun = false;
       }
-
       len = socket.read_some(boost::asio::buffer(buf), error);
       if (error == boost::asio::error::eof)
+      {
+        //Now let's do some topic cleanup to handle the errors that arise in the system. 
+        ROS_INFO("Socket Terminated");
+        //Let's unregister publisher. 
         break; // Connection closed cleanly by peer.
+      }
       else if (error)
         throw boost::system::system_error(error); // Some other error.
       parserIn.received(len, buf.data());//As it taked (long int sz, const *data)
       while (msg = parserIn.get_message())
       {
-        // printf("The output of the calss is: %d\n", msg.get()->id() );
+
         if (dynamic_cast<fs::fsMsgTrackingState*>(msg.get()))
         {
 
@@ -91,16 +86,21 @@ int main(int argc, char* argv[])
 
           std::vector<float> blend_shape = data.m_coeffs;
 
-          //Before pulishing it check if they are the same;
           int counter = 0;
 
           if (blendshape_names.size() == blend_shape.size())
           {
+            shapekey_pairs.shapekey.clear();
             for (std::vector<float>::iterator i = blend_shape.begin(); i != blend_shape.end(); ++i)
             {
+              blender_api_msgs::FSShapekey skey;
+              skey.name = blendshape_names[counter];
+              skey.value = *i;
+              shapekey_pairs.shapekey.push_back(skey);
               printf("Blendshape %s : %f\n", blendshape_names[counter].c_str(),  *i);
               counter++;
             }
+            pub_shape.publish(shapekey_pairs);
           }
           else {
             firstrun = true; //Cause the number of blendshapes and the rigging data have now changed in the system.
