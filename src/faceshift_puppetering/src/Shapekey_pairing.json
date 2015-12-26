@@ -5,20 +5,20 @@
 	"brow_center_DN": [{}],
 	"brow_inner_UP.L": [{}],
 	"brow_inner_DN.L": [{
-		"BrowsD_L": 1
+		"BrowsSqueeze.L": 1
 	}],
 	"brow_inner_UP.R": [{}],
 	"brow_inner_DN.R": [{
-		"BrowsD_R": 1
+		"BrowsSqueeze.R": 1
 	}],
 	"brow_outer_UP.L": [{
 		"BrowsU_L": 1
 	}],
-	"brow_outer_DN.L": [{}],
+	"brow_outer_DN.L": [{"BrowsD_L": 1}],
 	"brow_outer_up.R": [{
 		"BrowsU_R": 1
 	}],
-	"brow_outer_DN.R": [{}],
+	"brow_outer_DN.R": [{"BrowsD_R": 1}],
 	"eye-flare.UP.L": [{
 		
 	}],

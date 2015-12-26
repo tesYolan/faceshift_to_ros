@@ -59,9 +59,9 @@ int main(int argc, char* argv[])
       if (error == boost::asio::error::eof)
       {
         //Now let's do some topic cleanup to handle the errors that arise in the system. 
-        ROS_INFO("Socket Terminated");
+        ROS_INFO("Awaiting Connection");
         //Let's unregister publisher. 
-        break; // Connection closed cleanly by peer.
+        continue; // Connection closed cleanly by peer.
       }
       else if (error)
         throw boost::system::system_error(error); // Some other error.
