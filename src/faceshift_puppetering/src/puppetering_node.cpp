@@ -11,25 +11,25 @@
 #include "fsbinarystream.h"
 using boost::asio::ip::tcp;
 
+
 int main(int argc, char* argv[])
 {
-  std::string ip_num; 
-  std::string port_num; 
+  std::string ip_num;
+  std::string port_num;
   ros::init(argc, argv, "faceshift_to_ros");
   ros::NodeHandle nh;
-
+  //TODO
+  //Why doesn't unregistered topics don't resolve in the blender API this is just to resolve the problem. 
   ros::Publisher pub = nh.advertise<blender_api_msgs::AnimationMode>("/blender_api/set_animation_mode", 30, true);
   ros::Publisher pub_shape = nh.advertise<blender_api_msgs::FSShapekeys>("/blender_api/set_shape_keys", 30);
   try
   {
     blender_api_msgs::FSShapekeys shapekey_pairs;
-
-
     fs::fsBinaryStream parserIn, parserOut;
     fs::fsMsgPtr msg;
     boost::asio::io_service io_service;
     tcp::resolver resolver(io_service);
-    nh.getParam("IP",ip_num);
+    nh.getParam("IP", ip_num);
     tcp::resolver::query query(ip_num, "33433");
     tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
     tcp::socket socket(io_service);
@@ -42,11 +42,20 @@ int main(int argc, char* argv[])
     mode.value = 1;
     pub.publish(mode);
 
-    for (;;)
+    while (ros::ok())
     {
       boost::array<char, 128> buf;
       boost::system::error_code error;
-      //Now this is an overkill but we need to get the blendshape names in every packet
+      
+      
+      if (error == boost::asio::error::eof)
+      {
+        //Now let's do some topic cleanup to handle the errors that arise in the system.
+        ROS_INFO("Awaiting Connection");
+        //Let's unregister publisher.
+        continue; // Connection closed cleanly by peer.
+      }
+
       if (firstrun)
       {
         fs::fsMsgSendBlendshapeNames bln;
@@ -55,12 +64,13 @@ int main(int argc, char* argv[])
         socket.send(boost::asio::buffer(datatosend));
         firstrun = false;
       }
+
       len = socket.read_some(boost::asio::buffer(buf), error);
       if (error == boost::asio::error::eof)
       {
-        //Now let's do some topic cleanup to handle the errors that arise in the system. 
+        //Now let's do some topic cleanup to handle the errors that arise in the system.
         ROS_INFO("Awaiting Connection");
-        //Let's unregister publisher. 
+        //Let's unregister publisher.
         continue; // Connection closed cleanly by peer.
       }
       else if (error)
