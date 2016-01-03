@@ -38,8 +38,9 @@ int main(int argc, char* argv[])
     size_t len;
     std::vector<std::string> blendshape_names;
 
+//Here is the code that does register the handle to the system to avoid socket terminated without getting any data in ROS. 
     blender_api_msgs::AnimationMode mode;
-    mode.value = 1;
+    mode.value = 0;
     pub.publish(mode);
 
     while (ros::ok())
@@ -85,14 +86,14 @@ int main(int argc, char* argv[])
           fs::fsMsgTrackingState *ts = dynamic_cast<fs::fsMsgTrackingState*>(msg.get());
           const fs::fsTrackingData & data = ts->tracking_data();
 
-          printf ("Time: %f \n", data.m_timestamp);
-          printf ("Tracking Results: %s", data.m_trackingSuccessful ? "true" : "false");
-          printf ("head translation: %f %f %f\n", data.m_headTranslation.x, data.m_headTranslation.y, data.m_headTranslation.z);
-          printf ("head rotation: %f %f %f %f \n", data.m_headRotation.x, data.m_headRotation.y, data.m_headRotation.z, data.m_headRotation.w);
-          printf ("Eye Gaze Left Pitch: %f\n", data.m_eyeGazeLeftPitch);
-          printf ("Eye Gaze Left Pitch: %f\n", data.m_eyeGazeLeftYaw);
-          printf ("Eye Gaze Left Pitch: %f\n", data.m_eyeGazeRightPitch);
-          printf ("Eye Gaze Left Pitch: %f\n", data.m_eyeGazeRightYaw);
+          // printf ("Time: %f \n", data.m_timestamp);
+          // printf ("Tracking Results: %s", data.m_trackingSuccessful ? "true" : "false");
+          // printf ("head translation: %f %f %f\n", data.m_headTranslation.x, data.m_headTranslation.y, data.m_headTranslation.z);
+          // printf ("head rotation: %f %f %f %f \n", data.m_headRotation.x, data.m_headRotation.y, data.m_headRotation.z, data.m_headRotation.w);
+          // printf ("Eye Gaze Left Pitch: %f\n", data.m_eyeGazeLeftPitch);
+          // printf ("Eye Gaze Left Pitch: %f\n", data.m_eyeGazeLeftYaw);
+          // printf ("Eye Gaze Left Pitch: %f\n", data.m_eyeGazeRightPitch);
+          // printf ("Eye Gaze Left Pitch: %f\n", data.m_eyeGazeRightYaw);
 
           std::vector<float> blend_shape = data.m_coeffs;
 
@@ -107,7 +108,7 @@ int main(int argc, char* argv[])
               skey.name = blendshape_names[counter];
               skey.value = *i;
               shapekey_pairs.shapekey.push_back(skey);
-              printf("Blendshape %s : %f\n", blendshape_names[counter].c_str(),  *i);
+              // printf("Blendshape %s : %f\n", blendshape_names[counter].c_str(),  *i);
               counter++;
             }
             pub_shape.publish(shapekey_pairs);
@@ -128,7 +129,7 @@ int main(int argc, char* argv[])
           for (std::vector<std::string>::iterator i = blendshape_names.begin();
                i != blendshape_names.end(); ++i)
           {
-            printf("Blendshape name %s\n", (*i).c_str() );
+            // printf("Blendshape name %s\n", (*i).c_str() );
           }
 
         }
@@ -136,7 +137,7 @@ int main(int argc, char* argv[])
 
       }
       if (!parserIn.valid()) {
-        printf("parser in invalid state\n");
+        // printf("parser in invalid state\n");
         parserIn.clear();
       }
       //Now include exit statment and other calibrate commands.
